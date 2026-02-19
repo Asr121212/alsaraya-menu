@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قائمة طعام مطاعم السرايا - اليمن</title>
+    <style>
+        :root {
+            --primary-color: #ff8c00; /* Orange from logo */
+            --secondary-color: #fcecdb; /* Light orange bg */
+            --text-color: #333;
+            --white: #ffffff;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+        }
+
+        /* Header Section */
+        header {
+            background-color: var(--primary-color);
+            color: var(--white);
+            text-align: center;
+            padding: 20px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        header p {
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Search Bar */
+        .search-container {
+            padding: 15px;
+            position: sticky;
+            top: 80px; /* Adjust based on header height */
+            z-index: 999;
+            background-color: #f4f4f9;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #search-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* Menu Categories Navigation */
+        .category-nav {
+            display: flex;
+            overflow-x: auto;
+            padding: 10px 15px;
+            gap: 10px;
+            background: var(--white);
+            margin-bottom: 15px;
+            scrollbar-width: none; /* Hide scrollbar Firefox */
+        }
+        
+        .category-nav::-webkit-scrollbar {
+            display: none; /* Hide scrollbar Chrome/Safari */
+        }
+
+        .cat-btn {
+            background: var(--secondary-color);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+            color: var(--text-color);
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .cat-btn.active {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+
+        /* Menu Items */
+        .menu-container {
+            padding: 10px 15px 80px; /* Bottom padding for footer */
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .category-section {
+            margin-bottom: 30px;
+        }
+
+        .category-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .menu-item {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-details {
+            flex: 1;
+            padding-left: 10px;
+        }
+
+        .item-name {
+            font-weight: bold;
+            font-size: 1.05rem;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .item-desc {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .item-price {
+            background-color: var(--secondary-color);
+            color: #d35400;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 8px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .currency {
+            font-size: 0.7rem;
+            display: block;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #333;
+            color: #fff;
+            font-size: 0.8rem;
+            margin-top: 20px;
+        }
+
+        /* No results message */
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>مطاعم السرايا</h1>
+        <p>قائمة الطعام الرقمية</p>
+    </header>
+
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="ابحث عن وجبة (مثلاً: مندي، شاورما)...">
+    </div>
+
+    <div class="category-nav" id="category-nav">
+        <!-- Categories injected by JS -->
+    </div>
+
+    <div class="menu-container" id="menu-container">
+        <!-- Menu items injected by JS -->
+        <div class="no-results" id="no-results">لا توجد نتائج مطابقة لبحثك</div>
+    </div>
+
+    <footer>
+        <p>جميع الأسعار بالريال اليمني</p>
+        <p>&copy; 2026 مطاعم السرايا</p>
+    </footer>
+
+    <script>
+        // --- DATA FROM OCR IMAGES ---
+        const menuData = [
+            {
+                category: "اللحوم",
+                items: [
+                    { name: "ربع ذبيحة لحم مندي", price: 12500 },
+                    { name: "نص ذبيحة لحم مندي", price: 25000 },
+                    { name: "ذبيحة لحم مندي", price: 50000 },
+                    { name: "نفر لحم حنيذ", price: 2500 },
+                    { name: "ربع ذبيحة لحم حنيذ", price: 12500 },
+                    { name: "نص ذبيحة لحم حنيذ", price: 25000 },
+                    { name: "ذبيحة لحم حنيذ", price: 50000 },
+                    { name: "لحم برمة", price: 2500 },
+                    { name: "نفر لحم زربيان", price: 3100 },
+                    { name: "نفر لحم مضغوط", price: 2500 },
+                    { name: "نفر لحم مزموم", price: 2500 },
+                    { name: "نفر لحم صغار بلدي", price: 1500 },
+                    { name: "ماكس (كبدة + لحم صغار - دقة)", price: 2000 },
+                    { name: "حبة كبدة غنمي بلدي", price: 4000 },
+                    { name: "نص حبة كبدة غنمي بلدي", price: 2000 },
+                    { name: "نفر كبدة غنمي", price: 1500 },
+                    { name: "سندوتش كبدة", price: 500 },
+                    { name: "ربع كيلو دقة بلدي", price: 2000 },
+                    { name: "نفر دقة بلدي صاص", price: 1500 },
+                    { name: "نص كيلو دقة بلدي", price: 4000 },
+                    { name: "كيلو دقة بلدي", price: 8000 },
+                    { name: "سندوتش دقة", price: 500 },
+                    { name: "سندوتش لحم صغار", price: 500 },
+                    { name: "كباب حلبي", price: 1700 },
+                    { name: "عقدة لحم", price: 3300 },
+                    { name: "شقف لحم أوصال", price: 2000 },
+                    { name: "مارينا لحم", price: 1500 },
+                    { name: "سندوتش كباب لحم", price: 500 },
+                    { name: "راس غنمي", price: 1000 },
+                    { name: "مشكل مشاوي لحم", price: 4000 },
+                    { name: "حبة كبدة غنمي بالجرام", price: 15 }
+                ]
+            },
+            {
+                category: "دجاج",
+                items: [
+                    { name: "عقدة بروست", price: 1400 },
+                    { name: "ربع بروست مع التوابع", price: 1250 },
+                    { name: "ربع بروست حراق", price: 1300 },
+                    { name: "نص بروست مع التوابع", price: 2500 },
+                    { name: "نص بروست حراق", price: 2600 },
+                    { name: "حبة بروست", price: 5000 },
+                    { name: "عقدة دجاج صاص", price: 650 }, // Assuming price from context or similar items if missing
+                    { name: "ربع دجاج زربيان", price: 650 },
+                    { name: "نص دجاج زربيان", price: 1300 },
+                    { name: "ربع دجاج شواية", price: 550 },
+                    { name: "نصف دجاج شواية", price: 1100 },
+                    { name: "حبة دجاج شواية", price: 2200 },
+                    { name: "نصف دجاج فحم", price: 1200 },
+                    { name: "حبة دجاج فحم", price: 2400 },
+                    { name: "ربع دجاج مندي", price: 600 },
+                    { name: "نص دجاج مندي", price: 1200 },
+                    { name: "حبة دجاج مندي", price: 2400 },
+                    { name: "ربع دجاج مضغوط", price: 600 },
+                    { name: "نص دجاج مضغوط", price: 1200 },
+                    { name: "حبة دجاج مضغوط", price: 2400 },
+                    { name: "كباب دجاج", price: 1700 },
+                    { name: "مارينا دجاج", price: 1500 },
+                    { name: "مشكل مشاوي دجاج", price: 4500 },
+                    { name: "زجني بالدجاج", price: 1300 },
+                    { name: "سندوتش كباب دجاج", price: 500 },
+                    { name: "طبق شيش طاووق", price: 1900 },
+                    { name: "سندوتش شيش طاووق", price: 700 },
+                    { name: "مبشور مشاوي", price: 4700 },
+                    { name: "مشاوي السرايا", price: 4250 },
+                    { name: "مشاوي السرايا اسبيشل", price: 7500 },
+                    { name: "ربع دجاج حنيذ", price: 600 },
+                    { name: "نص دجاج حنيذ", price: 1200 },
+                    { name: "حبة دجاج حنيذ", price: 2400 },
+                    { name: "حبة دجاج زربيان", price: 2400 },
+                    { name: "ربع دجاج مسلوق", price: 600 }
+                ]
+            },
+            {
+                category: "الأرز والمشكلات",
+                items: [
+                    { name: "رز بخاري", price: 600 },
+                    { name: "رز بسمتي", price: 600 },
+                    { name: "رز مضغوط", price: 600 },
+                    { name: "رز مندي", price: 600 },
+                    { name: "رز زربيان", price: 600 },
+                    { name: "مكرونة فرن", price: 500 },
+                    { name: "مكرونة عادي", price: 500 },
+                    { name: "شعيرية", price: 400 },
+                    { name: "مشكل فرن", price: 600 }, // Assuming price
+                    { name: "مشكل عادي", price: 600 },
+                    { name: "مسقع", price: 650 },
+                    { name: "محشي", price: 600 },
+                    { name: "بامية", price: 550 },
+                    { name: "ملوخية", price: 500 },
+                    { name: "مشكل مع الملوخية", price: 600 },
+                    { name: "مجموع مشكل", price: 650 },
+                    { name: "فاصوليا رطب", price: 600 },
+                    { name: "فاصوليا ناشف", price: 600 },
+                    { name: "فاصوليا مع البيض", price: 700 },
+                    { name: "بيض عيون", price: 600 },
+                    { name: "بيض شكشوكة", price: 600 },
+                    { name: "بيض سادة", price: 500 },
+                    { name: "سندوتش بيض", price: 200 },
+                    { name: "قلابة فاصوليا مع البيض", price: 1200 },
+                    { name: "فاصوليا حرضة", price: 900 },
+                    { name: "فاصوليا حرضة مع البيض", price: 1100 },
+                    { name: "فول حرضة مع البيض", price: 800 },
+                    { name: "قلابة فول مع البيض", price: 1200 },
+                    { name: "قلابة بازيليا", price: 1000 },
+                    { name: "قلابة بازيليا مع البيض", price: 1200 },
+                    { name: "قلابة تونة", price: 500 },
+                    { name: "قلابة بازيليا مع التونة", price: 1500 },
+                    { name: "قلابة فاصوليا مع التونة", price: 1500 },
+                    { name: "علبة فول", price: 1000 },
+                    { name: "علبة فاصوليا", price: 1000 },
+                    { name: "ثلاثي (فول-فاصوليا-بيض)", price: 800 },
+                    { name: "سداسي", price: 3000 },
+                    { name: "زبادي صغير (200جم)", price: 200 },
+                    { name: "جمبري صالونة", price: 2500 },
+                    { name: "ديرك صالونة", price: 2500 },
+                    { name: "شربة", price: 500 },
+                    { name: "سندوتش فاصوليا", price: 200 },
+                    { name: "اصابع سمك صالونة", price: 1500 }
+                ]
+            },
+            {
+                category: "الشاورما والبيتزا",
+                items: [
+                    { name: "سندوتش شاورما دجاج عادي", price: 400 },
+                    { name: "سندوتش شاورما دجاج بان", price: 700 }, // Assuming price based on context
+                    { name: "سندوتش شاورما عربي صغير", price: 700 },
+                    { name: "سندوتش شاورما عربي مع الجبن", price: 1000 },
+                    { name: "سندوتش صاروخ", price: 1800 },
+                    { name: "نفر شاورما دجاج", price: 1100 },
+                    { name: "سندوتش صاروخ مع الجبن", price: 1200 },
+                    { name: "سندوتش مكس السرايا", price: 2200 },
+                    { name: "نفر شاورما السرايا", price: 1500 },
+                    { name: "صحن شاورما مقطع", price: 2500 },
+                    { name: "صحن شاورما 20 قطعة", price: 2500 },
+                    { name: "صحن شاورما مكس السرايا", price: 1900 },
+                    { name: "بيتزا مرجريتا صغير", price: 1900 },
+                    { name: "بيتزا مرجريتا كبير", price: 2500 },
+                    { name: "بيتزا خضروات صغير", price: 1900 },
+                    { name: "بيتزا خضروات كبير", price: 2500 },
+                    { name: "بيتزا بالدجاج صغير", price: 2000 },
+                    { name: "بيتزا بالدجاج كبير", price: 2800 },
+                    { name: "بيتزا فاهيتا صغير", price: 2500 },
+                    { name: "بيتزا فاهيتا كبير", price: 3500 },
+                    { name: "بيتزا لحم اسبريم صغير", price: 1800 },
+                    { name: "بيتزا لحم اسبريم كبير", price: 2800 },
+                    { name: "بيتزا مكس السرايا كبير", price: 3500 },
+                    { name: "بيتزا شاورما صغير", price: 1900 },
+                    { name: "بيتزا شاورما كبير", price: 2900 },
+                    { name: "بيتزا مكس السرايا صغير", price: 2500 },
+                    { name: "بيتزا الفصول الاربعة صغير", price: 2000 },
+                    { name: "بيتزا زنجر صغير", price: 2500 },
+                    { name: "بيتزا زنجر كبير", price: 3500 },
+                    { name: "فطائر باللحم", price: 1500 },
+                    { name: "فطائر جبن", price: 1200 },
+                    { name: "فطائر بالنوتيلا", price: 1500 },
+                    { name: "بيتزا مكس طبقات صغير", price: 3000 },
+                    { name: "بيتزا مكس طبقات كبير", price: 4500 },
+                    { name: "بيتزا محشية الاطراف صغير", price: 2500 },
+                    { name: "بيتزا محشية الاطراف كبير", price: 4000 },
+                    { name: "بيتزا اطفال", price: 1500 },
+                    { name: "بيتزا طبقات قشطة", price: 2000 },
+                    { name: "بيتزا صغير بالتونة", price: 2000 },
+                    { name: "بيتزا كبير بالتونة", price: 2500 }
+                ]
+            },
+            {
+                category: "العصائر",
+                items: [
+                    { name: "فواكه السرايا", price: 1200 },
+                    { name: "عصير منجا", price: 300 },
+                    { name: "عصير مركز", price: 400 },
+                    { name: "عصير جوافة", price: 350 },
+                    { name: "عصير برتقال خلاط", price: 400 },
+                    { name: "عصير فخفخينا", price: 600 },
+                    { name: "عصير عرائسي", price: 600 },
+                    { name: "برتقال مع الكيوي", price: 600 },
+                    { name: "عصير شمام", price: 300 },
+                    { name: "عصير فراولة", price: 500 },
+                    { name: "عصير فراولة مع الكيوي", price: 500 },
+                    { name: "عصير تفاح خلاط", price: 300 },
+                    { name: "عصير تفاح كبس", price: 1000 },
+                    { name: "عصير ليلة خميس", price: 600 },
+                    { name: "عصير افكادو", price: 1000 },
+                    { name: "عصير زبيب صافي", price: 600 },
+                    { name: "ليلة الانعاش", price: 500 },
+                    { name: "عصير مشكل فواكه", price: 400 },
+                    { name: "خلطة السرايا", price: 750 },
+                    { name: "عصير السرايا", price: 750 },
+                    { name: "عصير جزر", price: 500 },
+                    { name: "عصير مجموع", price: 400 },
+                    { name: "عصير ليمون", price: 200 },
+                    { name: "ليمون مركز مع نعناع", price: 250 },
+                    { name: "عصير أناناس", price: 500 },
+                    { name: "عصير كيوي", price: 600 },
+                    { name: "عصير فراولة بالقشطة", price: 500 },
+                    { name: "عصير حليب بالموز", price: 300 },
+                    { name: "سلطة فواكه مشكل", price: 1500 },
+                    { name: "ماهيتو وسط", price: 300 },
+                    { name: "ميلك شيك", price: 500 },
+                    { name: "عصير عنب", price: 350 },
+                    { name: "عصير سكريات", price: 150 },
+                    { name: "عصير الحمضيات", price: 250 },
+                    { name: "عصير زنجبيل", price: 250 },
+                    { name: "دلوني عليك", price: 850 },
+                    { name: "عصير كوكتيل طبقات", price: 700 },
+                    { name: "عصير مكسرات", price: 550 },
+                    { name: "عصير الامبراطور", price: 700 },
+                    { name: "عصير لوز خلاط", price: 550 },
+                    { name: "قارورة فاضي جديد", price: 100 },
+                    { name: "عنب الفلفل", price: 300 },
+                    { name: "سلاش", price: 500 },
+                    { name: "عصير رمان", price: 350 },
+                    { name: "ماهيتو كبير", price: 500 },
+                    { name: "عصير كوكتيل ثلاث طبقات", price: 500 },
+                    { name: "عرايسي عائلي", price: 1200 },
+                    { name: "عصير اوريجينال برتقال 250", price: 250 },
+                    { name: "حبة برتقال فاخر", price: 400 },
+                    { name: "حبة موز", price: 50 },
+                    { name: "عصير عوار قلب", price: 500 },
+                    { name: "عصير جي", price: 300 }
+                ]
+            },
+            {
+                category: "السلطات والمقبلات",
+                items: [
+                    { name: "حمص", price: 700 },
+                    { name: "متبل", price: 600 },
+                    { name: "سلطة بالتونة", price: 500 },
+                    { name: "سلطة السرايا", price: 1700 },
+                    { name: "سلطة خيار بالزبادي", price: 500 },
+                    { name: "لبنة", price: 500 },
+                    { name: "سلطة شرائح", price: 300 },
+                    { name: "سلطة ناعم", price: 250 },
+                    { name: "سلطة مايونيز", price: 500 },
+                    { name: "سلطة فتوش", price: 400 },
+                    { name: "سلطة سيزر", price: 500 },
+                    { name: "سلطة روسية", price: 500 },
+                    { name: "سلطة تبولة", price: 500 },
+                    { name: "سلطة ايطالية", price: 400 },
+                    { name: "سلطة عربية", price: 400 },
+                    { name: "سلطة زيتون", price: 350 },
+                    { name: "شفوت", price: 500 },
+                    { name: "سلطة بالجبن", price: 500 },
+                    { name: "صحن مخلل", price: 400 },
+                    { name: "ورق عنب", price: 600 },
+                    { name: "سلطة ايطالي", price: 1300 },
+                    { name: "سلطة السرايا 1", price: 100 },
+                    { name: "سحاوق أحمر", price: 500 },
+                    { name: "سحاوق بالجبن", price: 500 },
+                    { name: "سحاوق جبن مع الحلبة", price: 1000 },
+                    { name: "سحاوق فحسة بالجبن", price: 500 },
+                    { name: "سحاوق فحسة", price: 500 },
+                    { name: "سلطة السرايا صغير", price: 800 }
+                ]
+            },
+            {
+                category: "أسماك",
+                items: [
+                    { name: "سمك جحش موفى بالجرام", price: 4 },
+                    { name: "سمك عربي موفى بالجرام", price: 5 },
+                    { name: "سمك ديرك موفى بالجرام", price: 7 },
+                    { name: "سمك هامور بالكيلو", price: 5 }
+                ]
+            },
+            {
+                category: "الحلويات",
+                items: [
+                    { name: "كريم كراميل", price: 350 },
+                    { name: "محلبية", price: 350 },
+                    { name: "جيلي", price: 300 },
+                    { name: "أم علي السرايا", price: 900 },
+                    { name: "نصف كيلو كنافة بالفستق", price: 1500 },
+                    { name: "نصف كيلو طرمبة", price: 1350 },
+                    { name: "بسيمة تركي", price: 150 },
+                    { name: "تورتة اسباني رقم 1", price: 1500 },
+                    { name: "تورتة اسباني رقم 2", price: 5000 },
+                    { name: "تورتة اسباني رقم 3", price: 2500 },
+                    { name: "تورتة جالكسي", price: 6500 },
+                    { name: "تورتة عادي", price: 1200 },
+                    { name: "تورتة حسب الطلب", price: 1 },
+                    { name: "قطعة تورتة فانيليا", price: 500 },
+                    { name: "صحن حلويات صغير", price: 500 },
+                    { name: "صحن حلويات كبير", price: 1000 },
+                    { name: "تمر", price: 100 },
+                    { name: "كنافة بالشوكولاتة", price: 1000 },
+                    { name: "كنافة باللوتس", price: 1250 },
+                    { name: "كنافة سبيشل", price: 1500 },
+                    { name: "كنافة", price: 700 },
+                    { name: "كاب كيك", price: 300 },
+                    { name: "بسبوسة", price: 300 },
+                    { name: "حلى السرايا اكواب", price: 500 },
+                    { name: "ترجيلة تركي", price: 1000 },
+                    { name: "تشيز كيك فراولة", price: 100 },
+                    { name: "بسبوسة بالشوكولاتة", price: 50 },
+                    { name: "حبة طرمبة", price: 100 },
+                    { name: "بقلاوة", price: 300 }
+                ]
+            },
+            {
+                category: "المعصوب والعريكة",
+                items: [
+                    { name: "ملوح سنجل", price: 300 },
+                    { name: "ملوح دبل", price: 500 },
+                    { name: "رطب", price: 300 },
+                    { name: "دبل رطب", price: 500 },
+                    { name: "مثلوث", price: 1000 },
+                    { name: "خبز (5 حبات)", price: 100 },
+                    { name: "فتة دخن", price: 1200 },
+                    { name: "عريكة طبقات", price: 1800 },
+                    { name: "عريكة صافي", price: 1400 },
+                    { name: "عريكة دخن", price: 1500 },
+                    { name: "عريكة صغير", price: 1000 },
+                    { name: "معصوب عادي موز", price: 800 },
+                    { name: "معصوب عادي عسل", price: 800 },
+                    { name: "معصوب قشطة وجبن", price: 1000 },
+                    { name: "معصوب قشطة", price: 800 },
+                    { name: "معصوب ملكي", price: 1250 },
+                    { name: "فتة موز صافي", price: 600 },
+                    { name: "فتة موز مع عسل وقشطة", price: 1000 },
+                    { name: "فتة موز+ فتة تمر مع القشطة", price: 1000 },
+                    { name: "فتة تمر صافي", price: 650 },
+                    { name: "فتة تمر كبسة", price: 750 },
+                    { name: "فتة مرق", price: 500 },
+                    { name: "فتة حارق", price: 3200 },
+                    { name: "فتة قشطة وعسل", price: 1000 },
+                    { name: "فتة عسل", price: 600 },
+                    { name: "فتة ناشف", price: 400 },
+                    { name: "فتة قشطة", price: 750 },
+                    { name: "فتة موز مع العسل", price: 750 },
+                    { name: "فتة زبيدي مع قشطة وعسل مراعي", price: 1200 }
+                ]
+            },
+            {
+                category: "المشروبات الساخنة",
+                items: [
+                    { name: "شاي أحمر", price: 100 },
+                    { name: "شاي حليب", price: 150 },
+                    { name: "شاي حليب مفور", price: 150 },
+                    { name: "براد شاي صغير", price: 200 },
+                    { name: "براد شاي وسط", price: 300 },
+                    { name: "براد شاي كبير", price: 400 },
+                    { name: "براد شاي حليب صغير", price: 400 },
+                    { name: "براد شاي حليب وسط", price: 600 },
+                    { name: "براد شاي حليب كبير", price: 800 },
+                    { name: "بن بالحليب", price: 150 },
+                    { name: "بن بالحليب مفور", price: 150 },
+                    { name: "بن بالحليب والزنجبيل", price: 150 },
+                    { name: "بن سادة", price: 100 },
+                    { name: "قهوة", price: 100 },
+                    { name: "قهوة قشر", price: 100 },
+                    { name: "كابتشينو", price: 500 },
+                    { name: "زنجبيل", price: 150 }
+                ]
+            },
+            {
+                category: "الوجبات السريعة",
+                items: [
+                    { name: "سندوتش فاهيتا لحم", price: 1300 },
+                    { name: "سندوتش فاهيتا دجاج", price: 1300 },
+                    { name: "سندوتش فاهيتا مكس السرايا", price: 1700 },
+                    { name: "سندوتش زنجر كرسبي", price: 1300 },
+                    { name: "سندوتش اصابع دجاج", price: 1300 },
+                    { name: "سندوتش اصابع لحم", price: 1300 },
+                    { name: "سندوتش روبيان جمبري", price: 1500 },
+                    { name: "سندوتش مكسيكانا", price: 1300 },
+                    { name: "طبق اصابع دجاج", price: 1500 },
+                    { name: "طبق اصابع سمك لحم", price: 2500 },
+                    { name: "طبق جمبري", price: 2500 },
+                    { name: "طبق سمك ديرك", price: 2500 },
+                    { name: "طبق فاهيتا لحم", price: 1800 },
+                    { name: "طبق فاهيتا دجاج", price: 1700 },
+                    { name: "طبق مكسيكانا", price: 1500 },
+                    { name: "طبق زنجر مع الجبن", price: 2000 },
+                    { name: "طبق مكس السرايا بروست", price: 14000 },
+                    { name: "طبق مكس السرايا مشكل", price: 22000 },
+                    { name: "طبق بحري", price: 12000 },
+                    { name: "طبق بحري صغير", price: 8000 },
+                    { name: "برجر لحم", price: 1000 },
+                    { name: "برجر لحم دبل", price: 1600 },
+                    { name: "برجر لحم 3*3", price: 2000 },
+                    { name: "برجر جبن", price: 550 },
+                    { name: "برجر دجاج", price: 900 },
+                    { name: "برجر دجاج دبل", price: 1500 },
+                    { name: "برجر دجاج 3*3", price: 1900 },
+                    { name: "برجر زنجر كرسبي", price: 900 },
+                    { name: "برجر زنجر دبل كرسبي", price: 1400 },
+                    { name: "برجر زنجر كرسبي 3*3", price: 1900 },
+                    { name: "برجر اطفال", price: 800 },
+                    { name: "جمبري مشوي عالفحم", price: 2500 },
+                    { name: "ناجد", price: 1200 },
+                    { name: "سمك ديرك مشوي عالفحم", price: 2500 },
+                    { name: "سمك جحش برست بالجرام", price: 4.5 },
+                    { name: "كرسبي رول", price: 1500 }
+                ]
+            },
+            {
+                category: "فحسة وتوابع",
+                items: [
+                    { name: "فحسة", price: 2500 },
+                    { name: "سلتة", price: 2000 },
+                    { name: "نفر فحسة صغير", price: 1700 },
+                    { name: "نصف سلتة", price: 1300 },
+                    { name: "فحسة غنمي", price: 3200 },
+                    { name: "ثوم", price: 350 },
+                    { name: "شبس", price: 500 },
+                    { name: "بان السرايا", price: 30 },
+                    { name: "توابع بروست", price: 250 },
+                    { name: "شطة رنا قارورة", price: 200 },
+                    { name: "كاتشب", price: 150 },
+                    { name: "مرق", price: 100 },
+                    { name: "صوص اسبايسي", price: 400 },
+                    { name: "صوص ثوم", price: 350 },
+                    { name: "صوص عادي", price: 350 },
+                    { name: "عسل ابو 500", price: 1000 },
+                    { name: "عسل ابو 1000", price: 1500 },
+                    { name: "عسل ابو 1500", price: 400 },
+                    { name: "حقين حقول", price: 150 },
+                    { name: "لحوح", price: 50 },
+                    { name: "خبز حبتين", price: 300 },
+                    { name: "علبة قشطة", price: 300 },
+                    { name: "زبادي كبير", price: 2000 }
+                ]
+            },
+            {
+                category: "طبخات وخدمات",
+                items: [
+                    { name: "طبخ لحم مندي بالكيلو", price: 2000 },
+                    { name: "طبخ لحم حنيذ بالكيلو", price: 2000 },
+                    { name: "طبخ لحم مزموم بالكيلو", price: 500 },
+                    { name: "طبخ علب بقوليات", price: 1 },
+                    { name: "طبخ لحوم واسماك محروقات", price: 1 },
+                    { name: "طبخ سمك موفى بالجرام", price: 1 },
+                    { name: "طبخ سمك برست بالجرام", price: 1 },
+                    { name: "طبخ سمك عالفحم بالجرام", price: 1 }
+                ]
+            }
+        ];
+
+        // --- DOM ELEMENTS ---
+        const categoryNav = document.getElementById('category-nav');
+        const menuContainer = document.getElementById('menu-container');
+        const searchInput = document.getElementById('search-input');
+        const noResults = document.getElementById('no-results');
+
+        // --- INITIALIZATION ---
+        function init() {
+            renderCategories();
+            renderMenu(menuData);
+        }
+
+        // --- RENDER CATEGORIES ---
+        function renderCategories() {
+            const allBtn = document.createElement('button');
+            allBtn.className = 'cat-btn active';
+            allBtn.innerText = 'الكل';
+            allBtn.onclick = () => filterByCategory('الكل', allBtn);
+            categoryNav.appendChild(allBtn);
+
+            menuData.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn';
+                btn.innerText = cat.category;
+                btn.onclick = () => filterByCategory(cat.category, btn);
+                categoryNav.appendChild(btn);
+            });
+        }
+
+        // --- RENDER MENU ---
+        function renderMenu(data) {
+            menuContainer.innerHTML = '';
+            menuContainer.appendChild(noResults); // Keep hidden element
+            
+            let hasItems = false;
+
+            data.forEach(cat => {
+                if(cat.items.length > 0) {
+                    hasItems = true;
+                    const section = document.createElement('div');
+                    section.className = 'category-section';
+                    
+                    const title = document.createElement('h2');
+                    title.className = 'category-title';
+                    title.innerText = cat.category;
+                    section.appendChild(title);
+
+                    cat.items.forEach(item => {
+                        const itemEl = document.createElement('div');
+                        itemEl.className = 'menu-item';
+                        itemEl.innerHTML = `
+                            <div class="item-details">
+                                <span class="item-name">${item.name}</span>
+                            </div>
+                            <div class="item-price">
+                                ${item.price}
+                                <span class="currency">ريال</span>
+                            </div>
+                        `;
+                        section.appendChild(itemEl);
+                    });
+
+                    menuContainer.appendChild(section);
+                }
+            });
+
+            noResults.style.display = hasItems ? 'none' : 'block';
+        }
+
+        // --- FILTER BY CATEGORY ---
+        function filterByCategory(categoryName, clickedBtn) {
+            // Update buttons style
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+            clickedBtn.classList.add('active');
+
+            // Reset search
+            searchInput.value = '';
+
+            if (categoryName === 'الكل') {
+                renderMenu(menuData);
+            } else {
+                const filtered = menuData.filter(cat => cat.category === categoryName);
+                renderMenu(filtered);
+            }
+        }
+
+        // --- SEARCH FUNCTIONALITY ---
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            
+            // Reset category buttons visual state (optional)
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+
+            const filteredData = menuData.map(cat => {
+                return {
+                    category: cat.category,
+                    items: cat.items.filter(item => item.name.toLowerCase().includes(term))
+                };
+            }).filter(cat => cat.items.length > 0);
+
+            renderMenu(filteredData);
+        });
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>
