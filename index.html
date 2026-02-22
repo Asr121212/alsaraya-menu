@@ -34,6 +34,16 @@
             top: 0;
             z-index: 1000;
         }
+        header .logo {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    border-radius: 50%;
+    background-color: #fff;
+    padding: 5px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
 
         header h1 {
             margin: 0;
@@ -186,9 +196,10 @@
 <body>
 
     <header>
-        <h1>مطاعم السرايا</h1>
-        <p>قائمة الطعام الرقمية</p>
-    </header>
+    <img src="logo.png" alt="شعار مطاعم السرايا" class="logo">
+    <h1>مطاعم السرايا</h1>
+    <p>قائمة الطعام الرقمية</p>
+</header>
 
     <div class="search-container">
         <input type="text" id="search-input" placeholder="ابحث عن وجبة (مثلاً: مندي، شاورما)...">
